@@ -1,9 +1,26 @@
 import { Navigate, useRoutes } from 'react-router-dom'
-import Dashboard from '@/pages/Dashboard'
 import Login from '@/pages/Login'
 import NotFound from '@/pages/NotFound'
+import type { MyRouterObject } from '@/types/router'
+import { normiorizeRoute } from '@/utils'
 
-const rootRouter = [
+const dynamicRoutes: MyRouterObject[] = []
+
+export const authRoutes: Record<string, { [key: string]: MyRouterObject[] }>
+  = import.meta.glob('./dynamic/*tsx', { eager: true })
+
+Object.keys(authRoutes).forEach((item) => {
+  const moudule = authRoutes[item].default.map((route) => {
+    route.meta!.auth = true
+    route.meta!.index = route.meta!.index || -1
+    return route
+  })
+  dynamicRoutes.push(...moudule)
+})
+
+export const authRouters = normiorizeRoute(dynamicRoutes)
+
+export const rootRouter = [
   {
     path: '/',
     element: <Navigate to="/dashboard" replace={true} />,
@@ -11,15 +28,13 @@ const rootRouter = [
   {
     path: '/login',
     element: <Login />,
+    meta: { auth: false, title: 'login', key: 'login' },
   },
+  ...authRouters,
   {
-    // 需要权限
-    path: '/dashboard',
-    element: <Dashboard />,
-  },
-  {
-    path: '/404/',
+    path: '/404',
     element: <NotFound />,
+    meta: { auth: false, title: 'Not Found', key: 'not found' },
   },
   {
     path: '*',

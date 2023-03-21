@@ -1,15 +1,19 @@
-import React, { useState } from 'react'
-import { Button, Form, Input, Space } from 'antd'
+import { useState } from 'react'
+import { Button, Form, Input, Space, message } from 'antd'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
-// import { userLoginApi } from "@/api/user";
+import { useNavigate } from 'react-router-dom'
 import SparkMd5 from 'spark-md5'
 import type { LoginData } from '@/types/user'
 import CanvasBackGround from '@/components/CanvasBackground'
 import './Login.css'
 import { userLoginApi } from '@/api/user'
+import { storage } from '@/utils'
+import { useAuth } from '@/hooks/useAuth'
 const Login = () => {
   const [captcha, setCaptcha] = useState('/api/captcha')
   const [form] = Form.useForm()
+  const navigate = useNavigate()
+  const auth = useAuth()
   const onFinish = async (values: LoginData) => {
     const obj: LoginData = {
       email: values.email,
@@ -27,10 +31,10 @@ const Login = () => {
     //   });
     const ret = await userLoginApi(obj)
     if (ret.token) {
-      //   storage.setToken(ret.token);
-      //   message.success("登录成功");
-      //   navigate("/dashboard");
-      //   auth.login(ret);
+      storage.setToken(ret.token)
+      message.success('登录成功')
+      navigate('/dashboard')
+      auth.login(ret)
       // 1. 管理token
       // 2. 弹出提醒
       // 3. 跳转到dashboard
@@ -48,8 +52,7 @@ const Login = () => {
       },
     })
       .then(res => res.json())
-      .then(() => {
-      })
+      .then(() => {})
   }
   return (
     <div className="login-container">
